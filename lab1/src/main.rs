@@ -2,6 +2,15 @@ use std::{fs::File, io};
 use rand::Rng;
 use std::io::prelude::*;
 
+fn read_input() -> String {
+    let mut input = String::new();
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read line");
+
+    input
+}
+
 fn powers(number: u64) -> [u64; 10] {
     let mut array = [number; 10];
     for i in 1 .. 10 {
@@ -35,11 +44,23 @@ fn test_collatz_on_array(array: [u64; 10]) -> [bool; 10] {
     result
 }
 
+fn collatz_shenanigans(x: u64) {
+    let x_powers = powers(x);
+    let collatz_test = test_collatz_on_array(x_powers);
+
+    let mut file = File::create("xyz.txt").expect("Couldn't open file");
+    for item in &collatz_test {
+        if *item {
+            file.write_all(b"true ").expect("Couldn't write to file");
+        }
+        else {
+            file.write_all(b"false ").expect("Couldn't write to file");
+        }
+    }
+}
+
 fn read_tuple() -> (u16, String) {
-    let mut input_number = String::new();
-    io::stdin()
-        .read_line(&mut input_number)
-        .expect("Failed to read line");
+    let input_number = read_input();
 
     let number = input_number.trim().parse::<u16>().unwrap_or(42);
 
@@ -71,11 +92,7 @@ fn weird_tuple_functionality() {
     'outer: loop {
         println!("Podaj liczbę powtórzeń");
 
-        let mut input = String::new();
-        io::stdin()
-            .read_line(&mut input)
-            .expect("Failed to read line");
-
+        let input = read_input();
         let iterations = input.trim().parse::<u64>().unwrap_or_default();
 
         for _i in 0 .. iterations {
@@ -91,13 +108,10 @@ fn weird_tuple_functionality() {
 fn main() {
     let returned = loop {
         println!("Podaj liczbę");
-        let mut guess = String::new();
-        io::stdin()
-            .read_line(&mut guess)
-            .expect("Failed to read line");
 
-        let result = guess.trim().parse::<u64>();
-        let mut x = match result {
+        let guess = read_input();
+
+        let mut x = match guess.trim().parse::<u64>() {
             Ok(number) => number,
             Err(_) => break true,
         };
@@ -108,21 +122,9 @@ fn main() {
             
         let random_number: u64 = rand::rng().random_range(0 ..= 5);
         x += random_number; 
-
-        let x_powers = powers(x);
-        let collatz_test = test_collatz_on_array(x_powers);
-
-        let mut file = File::create("xyz.txt").expect("Couldn't open file");
-        for item in &collatz_test {
-            if *item {
-                file.write_all(b"true ").expect("Couldn't write to file");
-            }
-            else {
-                file.write_all(b"false ").expect("Couldn't write to file");
-            }
-        }
-
         println!("New x value: {x}");
+
+        collatz_shenanigans(x);
     };
 
     match returned {
